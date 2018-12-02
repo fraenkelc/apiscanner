@@ -1,17 +1,34 @@
-version = "1.0-SNAPSHOT"
+import groovy.lang.Closure
 
 plugins {
     `java-library`
     `java-gradle-plugin`
     `kotlin-dsl`
     `maven-publish`
+    id("com.gradle.plugin-publish") version "0.10.0"
+    id("com.palantir.git-version") version "0.12.0-rc2"
 }
 
+val gitVersion: Closure<*> by extra
+
 group = "com.github.fraenkelc"
+version = gitVersion()
+
 repositories {
     jcenter()
 }
 
+pluginBundle {
+    website = "https://github.com/fraenkelc/apiscanner"
+    vcsUrl = "https://github.com/fraenkelc/apiscanner"
+    description = "Plugin that makes suggestions for api and implementation dependencies based on bytecode analysis."
+    tags = listOf("dependency-management", "implementation", "api")
+    (plugins) {
+        "com.github.fraenkelc.apiscanner.ApiScannerPlugin" {
+            displayName = "Gradle apiscanner plugin"
+        }
+    }
+}
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
@@ -30,5 +47,4 @@ dependencies {
     testRuntimeOnly(group = "org.junit.jupiter", name = "junit-jupiter-engine", version = "5.3.2")
 
     testImplementation(gradleTestKit())
-
 }

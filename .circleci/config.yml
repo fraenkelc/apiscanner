@@ -1,0 +1,61 @@
+defaults: &defaults
+  docker:
+  - image: circleci/openjdk:8-jdk
+  working_directory: ~/repo
+  environment:
+    TERM: dumb
+
+version: 2
+jobs:
+  cache_dependencies:
+    <<: *defaults
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+        - v1-dependencies-{{ checksum "build.gradle.kts" }}
+        # fallback to using the latest cache if no exact match is found
+        - v1-dependencies-
+    - run: ./gradlew dependencies
+    - save_cache:
+        paths:
+        - ~/.gradle
+        key: v1-dependencies-{{ checksum "build.gradle.kts" }}
+  build:
+    <<: *defaults
+    steps:
+    - checkout
+    - run: ./gradlew build
+  release:
+    <<: *defaults
+    steps:
+    - checkout
+    - run:
+        name: Decrypt Gradle properties
+        command: openssl enc -d -aes256 -base64 -in gradle.properties.enc -out gradle.properties -pass 'pass:$GRADLE_PROPS_KEY'
+    - run: ./gradlew publishPlugins
+workflows:
+  version: 2
+  build:
+    jobs:
+    - cache_dependencies
+    - build:
+        requires:
+        - cache_dependencies
+  release-from-tag:
+    jobs:
+    - cache_dependencies:
+        filters:
+          tags:
+            only: /^v\d+\.\d+\.\d+$/
+          branches:
+            ignore: /.*/
+    - release:
+        context: gradle-publish
+        requires:
+        - cache_dependencies
+        filters:
+          tags:
+            only: /^v\d+\.\d+\.\d+$/
+          branches:
+            ignore: /.*/
