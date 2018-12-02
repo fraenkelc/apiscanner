@@ -12,7 +12,7 @@ plugins {
 val gitVersion: Closure<*> by extra
 
 group = "com.github.fraenkelc"
-version = gitVersion()
+version = gitVersion(mapOf("prefix" to "version-"))
 
 repositories {
     jcenter()

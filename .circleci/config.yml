@@ -47,7 +47,7 @@ workflows:
     - cache_dependencies:
         filters:
           tags:
-            only: /^v\d+\.\d+\.\d+$/
+            only: /^version-\d+\.\d+\.\d+$/
           branches:
             ignore: /.*/
     - release:
@@ -56,6 +56,6 @@ workflows:
         - cache_dependencies
         filters:
           tags:
-            only: /^v\d+\.\d+\.\d+$/
+            only: /^version-\d+\.\d+\.\d+$/
           branches:
             ignore: /.*/
